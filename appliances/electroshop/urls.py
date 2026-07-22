@@ -17,17 +17,28 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from django.http import HttpResponseRedirect
+from django.views.generic import RedirectView
 from django.conf import settings
 from django.conf.urls.static import static
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # API modules
     path('api/', include('store.urls')),
+    path('api/', include('payments.urls')),
+    path('api/auth/', include('users.urls')),
+
+    # JWT auth
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/auth/', include('users.urls')),
-    path('api/', include('payments.urls')),
-    path('accounts/', include('allauth.urls')), 
+
+    # Allauth
+    path('accounts/', include('allauth.urls')),
+
+    # Redirect root URL to /api/
+    path('', RedirectView.as_view(url='/api/')),
 ]
+
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
