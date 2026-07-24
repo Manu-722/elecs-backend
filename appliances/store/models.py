@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 
 class Product(models.Model):
     CATEGORY_CHOICES = [
-        ('Sufurias', 'Sufurias'),
+        ('Sufurias & Cookware', 'Sufurias & Cookware'),
         ('Non-Stick Pans', 'Non-Stick Pans'),
         ('Induction Cookers', 'Induction Cookers'),
         ('Offers', 'Offers'),
@@ -26,6 +26,7 @@ class Product(models.Model):
     features = models.JSONField(default=list, blank=True)
     is_offer = models.BooleanField(default=False)
     offer_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
@@ -70,6 +71,37 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Order #{self.id} [{self.hawk_code}] by {self.user.username}"
+
+
+class SlideItem(models.Model):
+    title = models.CharField(max_length=150)
+    subtitle = models.TextField(blank=True)
+    image = models.ImageField(upload_to='slides/')
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    badge = models.CharField(max_length=60, blank=True)
+    active = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['order', '-created_at']
+
+    def __str__(self):
+        return self.title
+
+
+class Offer(models.Model):
+    title = models.CharField(max_length=150)
+    description = models.TextField(blank=True)
+    image = models.ImageField(upload_to='offers/')
+    original_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    offer_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    badge = models.CharField(max_length=60, blank=True, default='OFFER')
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
 
 
 class Review(models.Model):

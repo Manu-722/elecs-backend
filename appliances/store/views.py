@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 from django.conf import settings
-from .models import Product, CartItem, Order, Review
+from .models import Product, CartItem, Order, Review, SlideItem, Offer
 from users.models import Profile
 import json, random, string
 from rest_framework.decorators import api_view, permission_classes
@@ -45,6 +45,7 @@ def get_products(request):
         'features': p.features,
         'is_offer': p.is_offer,
         'offer_price': float(p.offer_price) if p.offer_price else None,
+        'updated_at': p.updated_at.isoformat(),
     } for p in products]
     return Response(data)
 
@@ -401,3 +402,123 @@ def delete_review(request, review_id):
     review = get_object_or_404(Review, id=review_id, user=request.user)
     review.delete()
     return Response({'message': 'Review deleted'})
+
+
+# ── SLIDESHOW ──────────────────────────────────────────────────────────────
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_slides(request):
+    slides = SlideItem.objects.filter(active=True)
+    return Response([{
+        'id': s.id, 'title': s.title, 'subtitle': s.subtitle,
+        'image': str(s.image), 'price': float(s.price) if s.price else None,
+        'badge': s.badge, 'order': s.order,
+    } for s in slides])
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+@parser_classes([MultiPartParser, FormParser])
+def add_slide(request):
+    image = request.FILES.get('image')
+    if not image:
+        return Response({'error': 'Image required'}, status=400)
+    s = SlideItem.objects.create(
+        title=request.data.get('title', ''),
+        subtitle=request.data.get('subtitle', ''),
+        image=image,
+        price=request.data.get('price') or None,
+        badge=request.data.get('badge', ''),
+        order=request.data.get('order', 0),
+    )
+    return Response({'id': s.id, 'message': 'Slide added'}, status=201)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAdminUser])
+def delete_slide(request, slide_id):
+    get_object_or_404(SlideItem, id=slide_id).delete()
+    return Response({'message': 'Slide deleted'})
+
+
+@api_view(['PATCH'])
+@permission_classes([IsAdminUser])
+def toggle_slide(request, slide_id):
+    s = get_object_or_404(SlideItem, id=slide_id)
+    s.active = not s.active
+    s.save()
+    return Response({'active': s.active})
+
+
+# ── OFFERS ─────────────────────────────────────────────────────────────────
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_offers(request):
+    offers = Offer.objects.filter(active=True)
+    return Response([{
+        'id': o.id, 'title': o.title, 'description': o.description,
+        'image': str(o.image),
+        'original_price': float(o.original_price) if o.original_price else None,
+        'offer_price': float(o.offer_price) if o.offer_price else None,
+        'badge': o.badge,
+    } for o in offers])
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def admin_get_offers(request):
+    offers = Offer.objects.all()
+    return Response([{
+        'id': o.id, 'title': o.title, 'description': o.description,
+        'image': str(o.image),
+        'original_price': float(o.original_price) if o.original_price else None,
+        'offer_price': float(o.offer_price) if o.offer_price else None,
+        'badge': o.badge, 'active': o.active,
+    } for o in offers])
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+@parser_classes([MultiPartParser, FormParser])
+def add_offer(request):
+    image = request.FILES.get('image')
+    if not image:
+        return Response({'error': 'Image required'}, status=400)
+    o = Offer.objects.create(
+        title=request.data.get('title', ''),
+        description=request.data.get('description', ''),
+        image=image,
+        original_price=request.data.get('original_price') or None,
+        offer_price=request.data.get('offer_price') or None,
+        badge=request.data.get('badge', 'OFFER'),
+    )
+    return Response({'id': o.id, 'message': 'Offer added'}, status=201)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAdminUser])
+def delete_offer(request, offer_id):
+    get_object_or_404(Offer, id=offer_id).delete()
+    return Response({'message': 'Offer deleted'})
+
+
+@api_view(['PATCH'])
+@permission_classes([IsAdminUser])
+def toggle_offer(request, offer_id):
+    o = get_object_or_404(Offer, id=offer_id)
+    o.active = not o.active
+    o.save()
+    return Response({'active': o.active})
+
+
+# ── ORDER CANCEL ───────────────────────────────────────────────────────────
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def cancel_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    order.status = 'Cancelled'
+    order.save()
+    return Response({'message': 'Order cancelled'})
