@@ -169,14 +169,10 @@ REST_FRAMEWORK = {
     )
 }
 
-# External service keys from .env
-CONSUMER_KEY = os.getenv('CONSUMER_KEY', 'vHAfO4FA3wL0CA0OWSpD3JGTyAlrTDA3Y95eRcq6bw1Fw1cc')
-CONSUMER_SECRET = os.getenv('CONSUMER_SECRET', 'nSRqCJtHyHPcemisuueLuyo2RznxZASZXzIcCZp09sXUCLJVP9AYcr7J58QMuVbT')
-STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', '')
 
-# M-Pesa Sandbox Configuration
-MPESA_SHORTCODE = '174379'
-MPESA_PASSKEY = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919'
+# Paybill details
+MPESA_PAYBILL = '522522'
+MPESA_ACCOUNT = '7518213'
 
 # Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For development

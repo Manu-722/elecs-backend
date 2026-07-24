@@ -1,31 +1,43 @@
 from django.urls import path
 from .views import (
-    landing,
-    get_shoes,
-    get_cart,
-    add_to_cart,
-    place_order,
-    get_user_cart,
-    persist_user_cart,
-    get_wishlist,
-    add_to_wishlist,
-    remove_from_wishlist,
+    landing, get_products, add_product, update_product, delete_product,
+    admin_get_orders, confirm_order,
+    get_cart, add_to_cart, place_order,
+    get_user_cart, persist_user_cart,
+    get_wishlist, add_to_wishlist, remove_from_wishlist,
+    get_purchase_history,
+    get_reviews, add_review, delete_review,
 )
 
 urlpatterns = [
     path('', landing),
-    path('shoes/', get_shoes),
+    path('products/', get_products),
+
+    # Admin
+    path('admin/products/add/', add_product),
+    path('admin/products/<int:product_id>/update/', update_product),
+    path('admin/products/<int:product_id>/delete/', delete_product),
+    path('admin/orders/', admin_get_orders),
+    path('admin/orders/<int:order_id>/confirm/', confirm_order),
+
+    # Orders
+    path('orders/place/', place_order),
+    path('orders/history/', get_purchase_history),
+
+    # Cart
     path('cart/', get_cart),
     path('cart/add/', add_to_cart),
-    path('order/place/', place_order),
+    path('user/cart/', get_user_cart),
+    path('persist_cart/', persist_user_cart),
 
-    # 🔐 Cart persistence
-    path('user/cart/', get_user_cart, name='get_user_cart'),
-    path('persist_cart/', persist_user_cart, name='persist_user_cart'),
-
-    # 💖 Wishlist endpoints
+    # Wishlist
     path('wishlist/', get_wishlist),
     path('wishlist/add/', add_to_wishlist),
     path('wishlist/remove/<int:item_id>/', remove_from_wishlist),
-    path('user/wishlist/', get_wishlist, name='get_user_wishlist'), 
+    path('user/wishlist/', get_wishlist),
+
+    # Reviews
+    path('products/<int:product_id>/reviews/', get_reviews),
+    path('products/<int:product_id>/reviews/add/', add_review),
+    path('reviews/<int:review_id>/delete/', delete_review),
 ]
